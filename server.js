@@ -11,7 +11,7 @@ server.get("/", (req, res) => {
 
 server.get("/budget", async (req, res, next) => {
   try {
-    res.json(await db("accounts").select('budget'));
+    res.json(await db("accounts").select());
   } catch (error) {
     console.log(error);
     next(error);
@@ -19,8 +19,52 @@ server.get("/budget", async (req, res, next) => {
 });
 
 server.get("/budget/:id", async (req, res, next) => {
+  try {
+    res.json(
+      await db("accounts")
+        .where("id", req.params.id)
+        .first("budget")
+    );
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+server.post("/new", async (req, res, next) => {
+  const payload = {
+    name: req.body.name,
+    budget: req.body.budget
+  };
+  try {
+    const id = await db("accounts").insert(payload);
+    res.json({
+        message: `Posted ${id}`
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+server.put("/:id", async (req, res, next) => {
+    const payload = {
+      name: req.body.name,
+      budget: req.body.budget
+    };
     try {
-        res.json(await db("accounts").where("id", req.params.id).first("budget"))
+      await db("accounts").where("id", req.params.id).update(payload);
+      res.json(await db("accounts").where("id", req.params.id));
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  });
+
+  server.delete("/:id", async (req, res, next) => {
+    try {
+      await db("accounts").where("id", req.params.id).del();
+      res.status(204).end()
     } catch (error) {
       console.log(error);
       next(error);
